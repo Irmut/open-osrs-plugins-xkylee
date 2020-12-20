@@ -30,7 +30,7 @@ open class BootstrapTask : DefaultTask() {
     private fun getBootstrap(): JSONArray? {
         val client = OkHttpClient()
 
-        val url = "https://raw.githubusercontent.com/xKylee/plugins-release/master/plugins.json"
+        val url = "https://raw.githubusercontent.com/mithruir/open-osrs-plugins-xkylee/master/plugins.json"
         val request = Request.Builder()
                 .url(url)
                 .build()
@@ -61,7 +61,7 @@ open class BootstrapTask : DefaultTask() {
                             "version" to it.project.version,
                             "requires" to ProjectVersions.apiVersion,
                             "date" to formatDate(Date()),
-                            "url" to "https://github.com/xKylee/plugins-release/blob/master/release/${it.project.name}-${it.project.version}.jar?raw=true",
+                            "url" to "https://github.com/mithruir/open-osrs-plugins-xkylee/blob/master/release/${it.project.name}-${it.project.version}.jar?raw=true",
                             "sha512sum" to hash(plugin.readBytes())
                     ))
 
@@ -82,6 +82,17 @@ open class BootstrapTask : DefaultTask() {
                         }
 
                         if (it.project.version.toString() in item.getJSONArray("releases").toString()) {
+                            var releases = item.getJSONArray("releases")
+                            var removed = releases.remove(releases.length() - 1)
+                            var newRelease = JsonBuilder(
+                                    "version" to it.project.version,
+                                    "requires" to ProjectVersions.apiVersion,
+                                    "date" to (removed as JSONObject).get("date").toString(),
+                                    "url" to "https://github.com/mithruir/open-osrs-plugins-xkylee/blob/master/release/${it.project.name}-${it.project.version}.jar?raw=true",
+                                    "sha512sum" to hash(plugin.readBytes())
+                            ).jsonObject()
+                            releases.put(newRelease)
+                            item.put("releases", releases)
                             pluginAdded = true
                             plugins.add(item)
                             break
